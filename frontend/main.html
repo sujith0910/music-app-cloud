@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MusicCloud Dashboard</title>
+    <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body class="main-body" onload="loadDashboard()">
+
+    <div class="sidebar">
+        <div class="side-logo">&#9835;</div>
+        <h2>MusicCloud</h2>
+        <p>Cloud Music Hub</p>
+    </div>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <div>
+                <p class="eyebrow">Dashboard</p>
+                <h1 id="welcomeUser">Welcome</h1>
+            </div>
+
+            <div class="top-actions">
+                <button class="subscription-shortcut" onclick="scrollToSubscriptions()">My Subscriptions</button>
+                <button class="logout-btn" onclick="logoutUser()">Logout</button>
+            </div>
+        </div>
+
+        <section class="hero-card">
+            <div>
+                <h2>Find, subscribe, and manage your favourite music</h2>
+                <p>Search by title, year, artist, or album. Your saved songs will appear in your subscription library.</p>
+            </div>
+        </section>
+
+        <div class="dashboard">
+            <section class="panel search-panel">
+                <div class="section-title">
+                    <h3>Search Music</h3>
+                    <span>Query Area</span>
+                </div>
+
+                <div class="search-grid">
+                    <input type="text" id="searchTitle" placeholder="Title">
+                    <input type="text" id="searchYear" placeholder="Year">
+                    <input type="text" id="searchArtist" placeholder="Artist">
+                    <input type="text" id="searchAlbum" placeholder="Album">
+                </div>
+
+                <button class="primary-btn" onclick="queryMusic()">Search Music</button>
+
+                <p id="queryMessage" class="message"></p>
+
+                <div id="musicResults" class="music-grid"></div>
+            </section>
+
+            <section class="panel" id="subscriptionSection">
+                <div class="section-title">
+                    <h3>My Subscriptions</h3>
+                    <span>Saved Music</span>
+                </div>
+
+                <div id="subscriptionsList" class="music-grid"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="app.js?v=5"></script>
+</body>
+</html>

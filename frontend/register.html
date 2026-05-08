@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Account</title>
+    <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body class="auth-body">
+
+    <div class="auth-shell">
+        <div class="brand-panel">
+            <div class="side-logo">&#9835;</div>
+            <h1>Join MusicCloud</h1>
+            <p>Create your profile and start saving your favourite tracks.</p>
+        </div>
+
+        <div class="auth-card glass-card">
+            <h2>Create Account</h2>
+            <p class="subtitle">Start your personal music library</p>
+
+            <input type="text" id="registerUsername" placeholder="Username">
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="password" id="registerPassword" placeholder="Password">
+
+            <button onclick="registerUser()">Register</button>
+
+            <p id="registerMessage" class="message"></p>
+
+            <p class="small-text">
+                Already have an account? <a href="index.html">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js?v=5"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MusicCloud Login</title>
+    <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body class="auth-body">
+
+    <div class="auth-shell">
+        <div class="brand-panel">
+            <div class="side-logo">&#9835;</div>
+            <h1>MusicCloud</h1>
+            <p>Stream your favourites. Build your subscriptions. Discover music smarter.</p>
+        </div>
+
+        <div class="auth-card glass-card">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Login to continue your music journey</p>
+
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Password">
+
+            <button onclick="loginUser()">Login</button>
+
+            <p id="loginMessage" class="message"></p>
+
+            <p class="small-text">
+                New to MusicCloud? <a href="register.html">Create an account</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js?v=5"></script>
+</body>
+</html>

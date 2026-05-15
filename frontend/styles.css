@@ -275,6 +275,10 @@ a {
     padding: 15px;
     transition: 0.25s;
     overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 430px;
 }
 
 .music-card:hover {
@@ -300,6 +304,10 @@ a {
     margin: 5px 0;
     color: #cbd5e1;
     font-size: 14px;
+}
+
+.music-card button {
+    margin-top: auto;
 }
 
 .remove-btn {

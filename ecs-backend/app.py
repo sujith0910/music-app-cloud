@@ -129,10 +129,23 @@ def get_subscriptions():
 @app.route("/subscriptions", methods=["POST"])
 def add_subscription():
     data = request.get_json()
+
+    email = data.get("email", "").strip()
+    song_id = data.get("song_id", "").strip()
+
+    existing_subscription = subscription_table.get_item(
+        Key={
+            "email": email,
+            "song_id": song_id
+        }
+    )
+
+    if "Item" in existing_subscription:
+        return jsonify({"message": "Song already subscribed"}), 409
+
     subscription_table.put_item(Item=data)
 
     return jsonify({"message": "Subscription added"}), 201
-
 
 @app.route("/subscriptions", methods=["DELETE"])
 def remove_subscription():

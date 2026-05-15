@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://mu-5cd4137b7ef64bddaa570a12c9c2ac25.ecs.us-east-1.on.aws";
+const API_BASE_URL = "https://i1vghjfoxh.execute-api.us-east-1.amazonaws.com/prod";
 
 function showMessage(id, text, isError = true) {
     const msg = document.getElementById(id);
@@ -177,26 +177,33 @@ function subscribeSongById(songId) {
 }
 
 async function subscribeSong(song) {
+
     const email = localStorage.getItem("email");
 
-    const payload = {
-        email: email,
-        song_id: song.song_id,
-        title: song.title,
-        artist: song.artist,
-        album: song.album,
-        year: song.year,
-        image_url: song.image_url
-    };
-
-    await fetch(`${API_BASE_URL}/subscriptions`, {
+    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload)
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            song_id: song.song_id,
+            title: song.title,
+            artist: song.artist,
+            album: song.album,
+            year: song.year,
+            image_url: song.image_url
+        })
     });
 
-    loadSubscriptions();
-    showMessage("queryMessage", "Song subscribed successfully", false);
+    const data = await response.json();
+
+    if (response.ok) {
+        showMessage("queryMessage", "Song subscribed successfully", false);
+        loadSubscriptions();
+    } else {
+        showMessage("queryMessage", data.message || "Subscription failed");
+    }
 }
 
 async function removeSubscription(songId) {

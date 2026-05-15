@@ -1,6 +1,6 @@
 import json
 import boto3
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
 
@@ -52,8 +52,8 @@ def lambda_handler(event, context):
 def login_user(event):
     data = json.loads(event.get("body", "{}"))
 
-    email = data.get("email", "")
-    password = data.get("password", "")
+    email = data.get("email", "").strip()
+    password = data.get("password", "").strip()
 
     result = login_table.get_item(Key={"email": email})
     user = result.get("Item")
@@ -71,14 +71,25 @@ def login_user(event):
 def register_user(event):
     data = json.loads(event.get("body", "{}"))
 
-    email = data.get("email", "")
-    user_name = data.get("user_name", "")
-    password = data.get("password", "")
+    email = data.get("email", "").strip()
+    user_name = data.get("user_name", "").strip()
+    password = data.get("password", "").strip()
 
-    existing_user = login_table.get_item(Key={"email": email})
+    if not email or not user_name or not password:
+        return response(400, {"message": "All fields are required"})
 
-    if "Item" in existing_user:
-        return response(409, {"message": "The email already exists"})
+    if "@" not in email:
+        return response(400, {"message": "Please enter a valid email address"})
+
+    existing_email = login_table.get_item(Key={"email": email})
+
+    if "Item" in existing_email:
+        return response(409, {"message": "Email already exists. Please use another email"})
+
+    users = login_table.scan()
+    for user in users.get("Items", []):
+        if user.get("user_name", "").lower().strip() == user_name.lower():
+            return response(409, {"message": "Username already exists. Please try another username"})
 
     login_table.put_item(
         Item={
@@ -92,95 +103,56 @@ def register_user(event):
 
 
 def query_music(event):
-
     params = event.get("queryStringParameters") or {}
 
-    title = params.get("title", "")
-    artist = params.get("artist", "")
-    year = params.get("year", "")
-    album = params.get("album", "")
+    title = params.get("title", "").strip().lower()
+    artist = params.get("artist", "").strip().lower()
+    year = params.get("year", "").strip()
+    album = params.get("album", "").strip().lower()
 
-    # Artist + Album → Use LSI
-    if artist and album:
+    if not title and not artist and not year and not album:
+        return response(400, {"message": "At least one field must be completed"})
 
-        result = music_table.query(
-            IndexName="album-index",
-            KeyConditionExpression=
-                Key("artist").eq(artist) &
-                Key("album").eq(album)
-        )
+    result = music_table.scan()
+    songs = result.get("Items", [])
 
-    # Title only → Use GSI
-    elif title and not artist and not year and not album:
+    matched_songs = []
 
-        result = music_table.query(
-            IndexName="title-index",
-            KeyConditionExpression=Key("title").eq(title)
-        )
+    for song in songs:
+        song_title = song.get("title", "").lower().strip()
+        song_artist = song.get("artist", "").lower().strip()
+        song_album = song.get("album", "").lower().strip()
+        song_year = str(song.get("year", "")).strip()
 
-    # Artist only → Main table query
-    elif artist and not title and not year and not album:
-
-        result = music_table.query(
-            KeyConditionExpression=Key("artist").eq(artist)
-        )
-
-    # Artist + Year → Query + Filter
-    elif artist and year:
-
-        result = music_table.query(
-            KeyConditionExpression=Key("artist").eq(artist),
-            FilterExpression=Attr("year").eq(year)
-        )
-
-    # Other searches → Scan
-    else:
-
-        filter_expression = None
+        title_match = True
+        artist_match = True
+        album_match = True
+        year_match = True
 
         if title:
-            filter_expression = Attr("title").eq(title)
-
-        if year:
-            if filter_expression:
-                filter_expression = filter_expression & Attr("year").eq(year)
-            else:
-                filter_expression = Attr("year").eq(year)
-
-        if album:
-            if filter_expression:
-                filter_expression = filter_expression & Attr("album").eq(album)
-            else:
-                filter_expression = Attr("album").eq(album)
+            title_match = title in song_title
 
         if artist:
-            if filter_expression:
-                filter_expression = filter_expression & Attr("artist").eq(artist)
-            else:
-                filter_expression = Attr("artist").eq(artist)
+            artist_match = artist in song_artist
 
-        if not filter_expression:
-            return response(400, {
-                "message": "At least one field must be completed"
-            })
+        if album:
+            album_match = album in song_album
 
-        result = music_table.scan(
-            FilterExpression=filter_expression
-        )
+        if year:
+            year_match = year == song_year
 
-    items = result.get("Items", [])
+        if title_match and artist_match and album_match and year_match:
+            matched_songs.append(song)
 
-    if len(items) == 0:
-        return response(404, {
-            "message": "No result is retrieved. Please query again"
-        })
+    if len(matched_songs) == 0:
+        return response(404, {"message": "No result is retrieved. Please query again"})
 
-    return response(200, items)
+    return response(200, matched_songs)
 
 
 def get_subscriptions(event):
     params = event.get("queryStringParameters") or {}
-    email = params.get("email", "")
+    email = params.get("email", "").strip()
 
     result = subscription_table.query(
         KeyConditionExpression=Key("email").eq(email)
@@ -192,6 +164,19 @@ def get_subscriptions(event):
 def add_subscription(event):
     data = json.loads(event.get("body", "{}"))
 
+    email = data.get("email", "").strip()
+    song_id = data.get("song_id", "").strip()
+
+    existing_subscription = subscription_table.get_item(
+        Key={
+            "email": email,
+            "song_id": song_id
+        }
+    )
+
+    if "Item" in existing_subscription:
+        return response(409, {"message": "Song already subscribed"})
+
     subscription_table.put_item(Item=data)
 
     return response(201, {"message": "Subscription added"})
@@ -200,8 +185,8 @@ def add_subscription(event):
 def remove_subscription(event):
     data = json.loads(event.get("body", "{}"))
 
-    email = data.get("email", "")
-    song_id = data.get("song_id", "")
+    email = data.get("email", "").strip()
+    song_id = data.get("song_id", "").strip()
 
     subscription_table.delete_item(
         Key={
